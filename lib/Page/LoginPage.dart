@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:trabalho_2/Banco/banco.dart';
 import 'package:trabalho_2/Page/LoginPage.dart';
+import 'package:trabalho_2/Page/RegisterPage.dart';
 import 'package:trabalho_2/main.dart';
+import 'package:trabalho_2/globals/globals.dart' as globals;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -50,73 +52,84 @@ class _RegisterState extends State<LoginPage> {
 
     return Scaffold(
       body: Form(
-          key: _formKey,
-          child: Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.all(16),
-            child: ListView(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: TextFormField(
-                    controller: _formEmail,
-                    focusNode: fEmail,
-                    autofocus: true,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                    validator: _validateEmail,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      label: const Text("Email"),
-                      hintText: "Digite seu Email",
-                      suffixIcon: const Icon(Icons.alternate_email),
+        key: _formKey,
+        child: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextFormField(
+                  controller: _formEmail,
+                  focusNode: fEmail,
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  validator: _validateEmail,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    label: const Text("Email"),
+                    hintText: "Digite seu Email",
+                    suffixIcon: const Icon(Icons.alternate_email),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextFormField(
+                  controller: _formPassword,
+                  obscureText: !_isShowingPassword,
+                  focusNode: fPassword,
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  validator: _validatePassword,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    label: const Text("Password"),
+                    hintText: "Digite sua senha",
+                    suffixIcon: IconButton(
+                      icon: Icon(_isShowingPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: _changePasswordVisibility,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: TextFormField(
-                    controller: _formPassword,
-                    obscureText: !_isShowingPassword,
-                    focusNode: fPassword,
-                    autofocus: true,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                    validator: _validatePassword,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      label: const Text("Password"),
-                      hintText: "Digite sua senha",
-                      suffixIcon: IconButton(
-                        icon: Icon(_isShowingPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                        onPressed: _changePasswordVisibility,
-                      ),
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    bool validity = _formKey.currentState!.validate();
-                    if (validity) {
-                      _logar(context);
-                    }
-                  },
-                  child: const Text("Logar-se"),
-                ),
-              ],
-            ),
-          )),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  bool validity = _formKey.currentState!.validate();
+                  if (validity) {
+                    _logar(context);
+                  }
+                },
+                child: const Text("Logar-se"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const RegisterPage()),
+                  );
+                },
+                child: const Text("Registrar-se"),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   _logar(context) {
     banco?.query(
         "select * from tb_usuario where email = '${_formEmail.text}' and password = '${_formPassword.text}'",
-        (numR, result) {
+        (numR, List<Map<String, Map<String, dynamic>>> result) {
       if (numR == 0) {
         showDialog(
           context: context,
@@ -131,10 +144,12 @@ class _RegisterState extends State<LoginPage> {
           },
         );
       } else {
+        globals.user_id = result[0]['tb_usuario']!['id'];
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const MyHomePage(title: 'Trabalho - Arthur'),
+            builder: (context) =>
+                MyHomePage(title: result[0]['tb_usuario']!['username']),
           ),
         );
       }

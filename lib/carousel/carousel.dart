@@ -80,6 +80,7 @@ class _CarouselState extends State<Carousel> {
               //Botão para voltar uma "pagina" no carrossel
               FloatingActionButton(
                 backgroundColor: Colors.amber,
+                heroTag: "btn1",
                 onPressed: () {
                   widget._scrollController.animateTo(
                       widget._scrollController.offset - 296,
@@ -93,6 +94,7 @@ class _CarouselState extends State<Carousel> {
               //Botão para avançar uma "pagina" no carrossel
               FloatingActionButton(
                 backgroundColor: Colors.amber,
+                heroTag: 'btn2',
                 onPressed: () {
                   widget._scrollController.animateTo(
                       widget._scrollController.offset + 296,

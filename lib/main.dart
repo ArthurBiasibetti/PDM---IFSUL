@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:trabalho_2/Banco/banco.dart';
 import 'package:trabalho_2/Page/ImageDescription.dart';
+import 'package:trabalho_2/Page/ImageForm.dart';
 import 'package:trabalho_2/Page/LoginPage.dart';
 import 'package:trabalho_2/carousel/carousel.dart';
+import 'globals/globals.dart' as globals;
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +35,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  var _images = [];
+  var banco = Banco((e) => print('Não foi possível estabelecer conexão - $e'));
+
+  void _setImages(List<dynamic> images) {
+    setState(() {
+      _images = images;
+    });
+  }
+
+  _getImages() {
+    if (globals.user_id != null) {
+      banco.query(
+        "select * from tb_images where owner = '${globals.user_id}' order by id",
+        (num, result) {
+          var images = result.map((e) => e['tb_images']).toList();
+          _setImages(images);
+        },
+        () {
+          print('Erro ao buscar imagens');
+        },
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getImages();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,72 +77,45 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             //Utiliza do widget Carousel criado
-            Carousel(children: [
-              //Utiliza dos assets foto1, foto2 e foto3.
-              //Para conseguir usar AssetImage vá entre no arquivo pubspec.yaml na "root".
-              //depois procure por assets e indique o caminha da sua pasta assets
-              GestureDetector(
-                onTap: () {
+            _images.isNotEmpty
+                ? Carousel(
+                    children: _images
+                        .map(
+                          (image) => GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ImageDescription(
+                                    imageId: image['id'],
+                                  ),
+                                ),
+                              ).then((value) => _getImages());
+                            },
+                            child: Container(
+                              foregroundDecoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: NetworkImage(image['url']),
+                                    fit: BoxFit.fill),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList())
+                : const Text('Sem imagens na Lista'),
+
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: ElevatedButton(
+                onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const ImageDescription(
-                          imageUrl: 'assets/foto1.jpg',
-                          imageDescription: 'Foto 1'),
-                    ),
-                  );
+                    MaterialPageRoute(builder: (context) => const ImageForm()),
+                  ).then((value) => _getImages());
                 },
-                child: Container(
-                  foregroundDecoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage('assets/foto1.jpg'),
-                        fit: BoxFit.fill),
-                  ),
-                ),
+                child: const Text("Adicionar Imagem"),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ImageDescription(
-                        imageUrl:
-                            'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif',
-                        imageDescription: 'Foto 2',
-                        isNetworkImage: true,
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  foregroundDecoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif'),
-                        fit: BoxFit.fill),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ImageDescription(
-                          imageUrl: 'assets/foto2.jpg',
-                          imageDescription: 'Foto 3'),
-                    ),
-                  );
-                },
-                child: Container(
-                  foregroundDecoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage('assets/foto2.jpg'),
-                        fit: BoxFit.fill),
-                  ),
-                ),
-              )
-            ])
+            ),
           ],
         ),
       ),

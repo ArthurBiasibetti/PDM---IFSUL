@@ -16,7 +16,10 @@ class _RegisterState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _formEmail = TextEditingController();
   final _formPassword = TextEditingController();
+  final _formUserName = TextEditingController();
+
   final fEmail = FocusNode();
+  final fUserName = FocusNode();
   final fPassword = FocusNode();
 
   bool _isShowingPassword = false;
@@ -43,6 +46,14 @@ class _RegisterState extends State<RegisterPage> {
     return "Password tem que ter pelo menos 3 caracteres";
   }
 
+  String? _validateUsername(String? value) {
+    if (value!.length > 0) {
+      return null;
+    }
+
+    return "Nome de usuário obrigatório";
+  }
+
   @override
   Widget build(BuildContext context) {
     banco = Banco((e) => print('Não foi possível estabelecer conexão - $e'));
@@ -54,6 +65,24 @@ class _RegisterState extends State<RegisterPage> {
             padding: const EdgeInsets.all(16),
             child: ListView(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TextFormField(
+                    controller: _formUserName,
+                    focusNode: fUserName,
+                    autofocus: true,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                    validator: _validateUsername,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      label: const Text("Usuário"),
+                      hintText: "Digite seu Usuário",
+                      suffixIcon: const Icon(Icons.person),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: TextFormField(
@@ -113,9 +142,9 @@ class _RegisterState extends State<RegisterPage> {
 
   _registrarPessoa(BuildContext context) {
     banco?.query(
-        "insert into TB_USUARIO (email, password) values ('${_formEmail.text}', '${_formPassword.text}')",
-        () {
-      print("DEU CERTO");
+        "insert into TB_USUARIO (email, password, username) values ('${_formEmail.text}', '${_formPassword.text}', '${_formUserName.text}')",
+        (num, result) {
+      Navigator.pop(context);
     }, (e) => print('Erro: $e'));
   }
 }
